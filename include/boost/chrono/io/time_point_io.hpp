@@ -1152,6 +1152,11 @@ namespace boost
             }
             It i(is);
             It eof;
+            if (i == eof)
+            {
+              err |= std::ios_base::failbit;
+              goto exit;
+            }
             c = *i;
             if (++i == eof || c != ' ')
             {
