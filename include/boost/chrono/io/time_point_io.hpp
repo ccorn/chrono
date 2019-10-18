@@ -846,10 +846,21 @@ namespace boost
         y += (m <= 2);
         --m;
     }
+
+    // Returns: 0 = Sunday .. 6 = Saturday
+    inline
+    int weekday(int32_t days_since_epoch) BOOST_NOEXCEPT {
+      // 1 Jan 1970 was Thursday. Branching to avoid overflow.
+      int r = (days_since_epoch + (days_since_epoch < 7 ? 4 : -3)) % 7;
+      return r < 0 ? r + 7 : r;
+    }
+
    inline std::tm * internal_gmtime(std::time_t const* t, std::tm *tm)
    {
       if (t==0) return 0;
       if (tm==0) return 0;
+      // Clear first, to reset tm_isdst and non-standard fields such as gmtoff
+      std::memset(tm, 0, sizeof(*tm));
 
 #if 0
       static  const unsigned char
@@ -906,8 +917,9 @@ namespace boost
      tm->tm_min = ms / 60;
      tm->tm_sec = ms % 60;
 
-     tm->tm_isdst = -1;
-     (void)mktime(tm);
+     tm->tm_wday = weekday(days_since_epoch);
+     tm->tm_yday = days_from_1jan(y, int32_t(m) + 1, int32_t(d));
+
      return tm;
    }
 
@@ -966,9 +978,6 @@ namespace boost
               tm = *tmp;
 #else
             if (gmtime_r(&t, &tm) == 0) failed = true;
-            tm.tm_isdst = -1;
-            (void)mktime(&tm);
-
 #endif
 
           }

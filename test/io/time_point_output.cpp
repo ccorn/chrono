@@ -232,15 +232,10 @@ void test_gmtime(std::time_t t)
   std::memset(&tm, 0, sizeof(std::tm));
   if (boost::chrono::detail::internal_gmtime(&t, &tm))
   {
-    tm.tm_isdst = -1;
-    (void)mktime(&tm);
     std::tm tm2;
     std::memset(&tm2, 0, sizeof(std::tm));
     if (gmtime_r(&t, &tm2))
     {
-      tm2.tm_isdst = -1;
-      (void)mktime(&tm2);
-
       BOOST_TEST_EQ( tm.tm_year , tm2.tm_year );
       BOOST_TEST_EQ( tm.tm_mon , tm2.tm_mon );
       BOOST_TEST_EQ( tm.tm_mday , tm2.tm_mday );
@@ -251,8 +246,9 @@ void test_gmtime(std::time_t t)
       BOOST_TEST_EQ( tm.tm_yday , tm2.tm_yday );
       BOOST_TEST_EQ( tm.tm_isdst , tm2.tm_isdst );
     }
+    else BOOST_ERROR("gmtime_r failed");
   }
-
+  else BOOST_ERROR("internal_gmtime failed");
 }
 #endif
 
