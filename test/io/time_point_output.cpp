@@ -183,6 +183,17 @@ void check_all_system_clock()
   test_good_prefix_system_clock("1970-01-01 00:00:00.200000000 +0000", duration<boost::int_least64_t, deci> (2));
   test_good_prefix_system_clock("1970-01-01 00:00:00.066666667 +0000", duration<boost::int_least64_t, ratio<1, 30> > (2));
 
+  // UTC must not be affected by DST switching
+  seconds tp_dst (1048989600);          // 2003-03-30 02:00:00 UTC
+  test_good_prefix_system_clock("2003-03-30 01:59:59.000000000 +0000",
+                                tp_dst - seconds(1));
+  test_good_prefix_system_clock("2003-03-30 02:00:00.000000000 +0000",
+                                tp_dst);
+  test_good_prefix_system_clock("2003-03-30 02:00:01.000000000 +0000",
+                                tp_dst + seconds(1));
+  test_good_prefix_system_clock("2003-03-30 03:00:00.000000000 +0000",
+                                tp_dst + hours(1));
+
   test_good_symbol_system_clock("1970-01-01 02:00:00.000000000 +0000", hours(2));
   test_good_symbol_system_clock("1970-01-01 00:02:00.000000000 +0000", minutes(2));
   test_good_symbol_system_clock("1970-01-01 00:00:02.000000000 +0000", seconds(2));
@@ -221,15 +232,10 @@ void test_gmtime(std::time_t t)
   std::memset(&tm, 0, sizeof(std::tm));
   if (boost::chrono::detail::internal_gmtime(&t, &tm))
   {
-    tm.tm_isdst = -1;
-    (void)mktime(&tm);
     std::tm tm2;
     std::memset(&tm2, 0, sizeof(std::tm));
     if (gmtime_r(&t, &tm2))
     {
-      tm2.tm_isdst = -1;
-      (void)mktime(&tm2);
-
       BOOST_TEST_EQ( tm.tm_year , tm2.tm_year );
       BOOST_TEST_EQ( tm.tm_mon , tm2.tm_mon );
       BOOST_TEST_EQ( tm.tm_mday , tm2.tm_mday );
@@ -240,8 +246,9 @@ void test_gmtime(std::time_t t)
       BOOST_TEST_EQ( tm.tm_yday , tm2.tm_yday );
       BOOST_TEST_EQ( tm.tm_isdst , tm2.tm_isdst );
     }
+    else BOOST_ERROR("gmtime_r failed");
   }
-
+  else BOOST_ERROR("internal_gmtime failed");
 }
 #endif
 
