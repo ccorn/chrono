@@ -193,6 +193,12 @@ void check_all_system_clock()
   test_good_utc_fmt_system_clock ("% 1970-01-01 02:00", "%% %Y-%m-%d %R", hours(2));
   //test_good_utc_fmt_system_clock ("1970-01-01 02:00 Thursday January", "%Y-%m-%d %R %A %B", hours(2));
 
+  // Signed UTC offset is mandatory
+  test_fail_epoch<system_clock>("1970-01-01 02:00:00.000000", hours(2));
+  test_fail_epoch<system_clock>("1970-01-01 02:00:00.000000 ", hours(2));
+  test_fail_epoch<system_clock>("1970-01-01 02:00:00.000000 -", hours(2));
+  test_fail_epoch<system_clock>("1970-01-01 02:00:00.000000 +", hours(2));
+  test_fail_epoch<system_clock>("1970-01-01 02:00:00.000000 0", hours(2));
 
 //  test_fail<Clock> ("3001 ms", seconds(3));
 //  test_fail_epoch<Clock> ("3001 ms", seconds(3));
